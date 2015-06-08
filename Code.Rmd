@@ -1,7 +1,7 @@
 ---
 title: "EOU PSY 440 Capstone 2015"
 author: "Tabatha Bowers"
-date: "May 17, 2015"
+date: "June 7, 2015"
 output: html_document
 ---
 
@@ -10,13 +10,142 @@ This is an R Markdown document. Markdown is a simple formatting syntax for autho
 When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
 ```{r}
-summary(cars)
+> summary(aov(Stress~BFI*Alcohol,data=results,))
+            Df Sum Sq Mean Sq F value Pr(>F)
+BFI          3  146.9   48.95   0.643  0.602
+Alcohol      1   13.7   13.71   0.180  0.679
+BFI:Alcohol  3  121.9   40.62   0.534  0.668
+Residuals   12  913.8   76.15  
+
+```
+Null hypothesis not rejected. Personality traits nor alcohol predicts stress levels. 
+
+
+
+```{r}
+summary(lm(Alcohol~Stress,data=results))
+
+Call:
+lm(formula = Alcohol ~ Stress, data = results)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-2.6665 -2.4258 -0.9358  1.8744  6.3736 
+
+Coefficients:
+            Estimate Std. Error t value Pr(>|t|)  
+(Intercept)  2.66653    0.96104   2.775   0.0125 *
+Stress      -0.02006    0.08471  -0.237   0.8155  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 2.93 on 18 degrees of freedom
+Multiple R-squared:  0.003107,  Adjusted R-squared:  -0.05228 
+F-statistic: 0.05609 on 1 and 18 DF,  p-value: 0.8155
 ```
 
-You can also embed plots, for example:
+```{r}
+Pearson's Chi-squared test
 
-```{r, echo=FALSE}
-plot(cars)
+data:  results$Condition and results$Stroop
+X-squared = 10.571, df = 6, p-value = 0.1026
+Condition IS independent of Stroop error
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+```{r}
+Can Alcohol Usage be predicted by stress levels and personality traits?
+lm(formula = Alcohol ~ Stress + BFI, data = results)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-3.7232 -1.6936 -0.5428  1.2995  5.3597 
+
+Coefficients:
+            Estimate Std. Error t value Pr(>|t|)  
+(Intercept)  3.09627    1.50057   2.063   0.0568 .
+Stress      -0.04143    0.09296  -0.446   0.6622  
+BFICon      -2.13912    1.93696  -1.104   0.2868  
+BFIExtra     0.12469    2.11465   0.059   0.9538  
+BFIOpen      0.62689    1.74861   0.359   0.7250  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 3.011 on 15 degrees of freedom
+Multiple R-squared:  0.1224,  Adjusted R-squared:  -0.1116 
+F-statistic: 0.5231 on 4 and 15 DF,  p-value: 0.7203
+```
+Given, R*2=0.1224,F(4,15)= 0.523, p= 0,7203, alcohol usage cannot be predicted by personality traits or stress levels. 
+
+
+Using the same code, change "stress" to "alcohol" to get a seperate graph
+
+```{r}
+library("dplyr")
+library("ggplot2")
+temp<-results%>%group_by(bfi)%>%summarize(means=mean(stress),sems=sd(stress)/sqrt(length(stress)))
+
+ f<-ggplot(temp,aes(x=factor(bfi),y=means))+geom_bar(stat="identity", color="black",fill=c("cyan4","azure3","aquamarine","azure4"))+geom_errorbar(aes(ymax=means+sems, ymin=means-sems), width=.1)
+ f
+
+f<-f+ggtitle("Stress Level  by Personality Trait")+
+    labs(x="Personality Trait", y="Stress Level")+
+scale_x_discrete(breaks=c("open","extra","con","agree"),labels=c("Openness","Extraversion","Conscientiousness","Agreeableness"))+
+    theme(plot.title=element_text(size=15,face="bold",vjust=.5))+
+    theme(axis.title.x=element_text(size=12,face="bold",vjust=-.25))+
+    theme(axis.title.y=element_text(size=12,face="bold",vjust=1))+
+    theme(axis.text.x=element_text(size=10,face="bold",color="black"))+
+    theme(axis.text.y=element_text(size=10,face="bold",color="black")) +   
+    coord_cartesian(ylim=c(min(temp$means)-2*max(temp$sems),max(temp$means)+2*max(temp$sems)))+
+    theme(panel.border=element_blank(), axis.line=element_line())+
+    theme(panel.grid.major.x=element_blank())+
+    theme(panel.grid.major.y=element_line(color="darkgrey"))+
+    theme(panel.grid.minor.y=element_blank())
+f
+```
+
+To make it easy to copy over to different code...
+```{r}
+
+“open”,”extra","con","agree"
+
+"Openness","Extraversion","Conscientiousness","Agreeableness"
+
+```
+
+
+```{r}
+Graph- Alcohol Usage Predicted by Personality Traits and Stress Levels"
+
+
+
+```
+```{r}
+f<-ggplot(results,aes(x=stress,y=alcohol,color=bfi))+
+geom_point(size=8)+
+    geom_abline(intercept=60.2+2.51/2, slope=-.092,color=col1)+
+    geom_abline(intercept=60.2-2.51/2, slope=-.092,color=col2)+
+scale_color_manual(values=c("azure3","aquamarine","azure4","cyan4"),breaks=c("open","extra","con","agree"),labels=c("Openness","Extraversion","Conscientiousness","Agreeableness"))+
+    ggtitle("Alcohol Usage Predicted by Personality Traits\n and Stress Levels")+
+    labs(x="Stress Level",y="Alcohol Level")+
+    theme(plot.title=element_text(size=10,face="bold", vjust=.5))+
+    theme(axis.title.x=element_text(size=12,face="bold", vjust=-.25))+
+    theme(axis.title.y=element_text(size=12,face="bold", vjust=1))+
+    theme(axis.text.x=element_text(size=10,face="bold",color="black"))+
+    theme(axis.text.y=element_text(size=10,face="bold",color="black"))+
+    theme(panel.border=element_blank(), axis.line=element_line())+
+    theme(panel.grid.major.x=element_blank())+
+    theme(panel.grid.minor.x=element_blank())+
+    theme(panel.grid.major.y=element_line(color="darkgrey"))+
+    theme(panel.grid.minor.y=element_blank())+
+    theme(legend.position=c()+
+    theme(legend.background=element_blank())+
+    theme(legend.title=element_blank())+
+    theme(legend.text=element_text(size=10,face="bold"))
+f
+```
+
+Alcohol Usage Predicted by Personality Traits and Stress Levels-Graph
+
+```{r}
+ggplot(results, aes(x=stress,y=alcohol,color=bfi))+geom_point(shape=1)+scale_color_manual(values=c("azure3","aquamarine","azure4","cyan4"),labels=c("Openness","Extraversion","Conscientiousness","Agreeableness"))+ ggtitle("Alcohol Usage Predicted by Personality Traits\n and Stress Levels")+ labs(x="Stress Level",y="Alcohol Level",color="Personality Traits")+geom_smooth(method=lm,se=FALSE,fullrange=TRUE)
+```
